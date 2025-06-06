@@ -1,0 +1,73 @@
+﻿@page "/"
+@using CurrencyRates.Models
+@inject CurrencyCacheService UpdateService
+@inject CurrencyExportService ExportService
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<div class="custom-toolbar">
+    <RadzenButton Text="Обновить" Icon="refresh" Click="@RefreshRates" Style="margin-right:10px" />
+    <RadzenButton Text="Скачать" Icon="download" Click="@DownloadExcel" Style="margin-right:10px" Disabled="@(!rates?.Any() ?? true)" />
+    <RadzenButton Text="Посмотреть" Icon="visibility" Click="@OpenDialog" Disabled="@(_selectedRate == null)" />
+</div>
+
+<RadzenDataGrid @ref="grid" Data="@rates" TItem="CurrencyRate" RowSelect="@OnRowSelect" 
+                ShowPagingSummary="true" AllowPaging="true" PageSize="10" AllowSorting="true" 
+                Class="currency-grid"
+                Style="height: 600px">
+    <Columns>
+        <RadzenDataGridColumn TItem="CurrencyRate" Property="Code" Title="Код" />
+        <RadzenDataGridColumn TItem="CurrencyRate" Property="Name" Title="Название" />
+        <RadzenDataGridColumn TItem="CurrencyRate" Property="Rate" Title="Курс" />
+        <RadzenDataGridColumn TItem="CurrencyRate" Property="Date" Title="Дата" FormatString="{0:yyyy-MM-dd}" />
+    </Columns>
+</RadzenDataGrid>
+
+
+
+@code {
+    private List<CurrencyRate> rates = new();
+    private CurrencyRate? _selectedRate;
+    private RadzenDataGrid<CurrencyRate>? grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshRates();
+    }
+
+    private async Task RefreshRates()
+    {
+        rates = (await UpdateService.GetLatestRatesAsync()).ToList();
+        _selectedRate = null;
+        if (grid != null)
+        {
+            await grid.Reload();
+        }
+    }
+
+    private async Task DownloadExcel()
+    {
+        var bytes = ExportService.ExportToExcel(rates);
+
+        await JS.InvokeVoidAsync("BlazorDownloadFile", "currency_rates.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", bytes);
+
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Успех", Detail = "Файл скачан" });
+    }
+
+    private void OnRowSelect(CurrencyRate rate)
+    {
+        _selectedRate = rate;
+    }
+
+    private async Task OpenDialog()
+    {
+        if (_selectedRate == null)
+            return;
+
+        await DialogService.OpenAsync<CurrencyDialog>("Детали валюты",
+            new Dictionary<string, object> { ["Rate"] = _selectedRate });
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+}

@@ -1,0 +1,43 @@
+﻿@using CurrencyRates.Models
+@using Radzen.Blazor
+@inject DialogService DialogService
+
+<div>
+    <table class="table table-bordered">
+        @foreach (var item in TransposedData)
+        {
+            <tr>
+                <th>@item.Key</th>
+                <td>@item.Value</td>
+            </tr>
+        }
+    </table>
+
+    <RadzenButton Text="Закрыть" Click="@Close" Style="margin-top: 10px;" />
+</div>
+
+@code {
+    [Parameter]
+    public CurrencyRate? Rate { get; set; }
+
+    private Dictionary<string, object?> TransposedData = new();
+
+    protected override void OnParametersSet()
+    {
+        if (Rate != null)
+        {
+            TransposedData = new Dictionary<string, object?>
+            {
+                { "Код", Rate.Code },
+                { "Название", Rate.Name },
+                { "Курс", Rate.Rate },
+                { "Дата", Rate.Date.ToString("yyyy-MM-dd") }
+            };
+        }
+    }
+
+    private void Close()
+    {
+        DialogService.Close();
+    }
+}

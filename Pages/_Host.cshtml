@@ -1,0 +1,54 @@
+﻿@page "/"
+@namespace CurrencyRates.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Currency Rates</title>
+
+    <link id="radzen-theme" href="_content/Radzen.Blazor/css/default-base.css" rel="stylesheet" />
+    <link href="css/site.css" rel="stylesheet" />
+</head>
+<body>
+    <app>
+        <component type="typeof(App)" render-mode="ServerPrerendered" />
+    </app>
+
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.changeRadzenTheme = function(theme) {
+            var themeLink = document.getElementById('radzen-theme');
+            if (!themeLink) return;
+
+            switch (theme) {
+                case 'dark':
+                    themeLink.href = "_content/Radzen.Blazor/css/dark.css";
+                    document.body.classList.add('dark-theme');
+                    break;
+                case 'default':
+                default:
+                    themeLink.href = "_content/Radzen.Blazor/css/default-base.css";
+                    document.body.classList.remove('dark-theme');
+                    break;
+            }
+        };
+
+        window.BlazorDownloadFile = function(filename, contentType, contentBase64) {
+            var link = document.createElement('a');
+            link.download = filename;
+            link.href = "data:" + contentType + ";base64," + btoa(String.fromCharCode.apply(null, new Uint8Array(contentBase64)));
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>

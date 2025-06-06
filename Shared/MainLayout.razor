@@ -1,0 +1,51 @@
+﻿@using Microsoft.JSInterop
+@using Radzen.Blazor
+@inherits LayoutComponentBase
+@inject IJSRuntime JS
+
+<RadzenBody>
+    <ChildContent>
+        <RadzenHeader class="custom-header">
+            <div class="header-container">
+                <span class="header-title">Currency Rates</span>
+
+                <RadzenDropDown @bind-Value="_currentTheme"
+                                Data="_themes"
+                                Style="width: 150px;"
+                                Change="OnThemeChanged" />
+            </div>
+        </RadzenHeader>
+
+
+        <RadzenContent Container="main" Class="p-4">
+            @Body
+        </RadzenContent>
+
+        <RadzenFooter Style="text-align: center; padding: 1rem;" class="rz-footer">
+            © @(DateTime.Now.Year) CurrencyApp
+        </RadzenFooter>
+
+        <RadzenDialog />
+        <RadzenNotification />
+        <RadzenTooltip />
+        <RadzenContextMenu />
+    </ChildContent>
+</RadzenBody>
+
+@code {
+    private string _currentTheme = "light";
+
+    private readonly List<string> _themes = new()
+    {
+        "light", "dark"
+    };
+
+    private async Task OnThemeChanged(object value)
+    {
+        if (value is string theme)
+        {
+            _currentTheme = theme;
+            await JS.InvokeVoidAsync("changeRadzenTheme", theme);
+        }
+    }
+}

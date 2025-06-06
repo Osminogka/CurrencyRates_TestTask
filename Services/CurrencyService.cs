@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Xml.Linq;
 using CurrencyRates.Models;
+using Microsoft.Extensions.Options;
 
 namespace CurrencyRates.Services
 {
@@ -8,11 +9,13 @@ namespace CurrencyRates.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<CurrencyService> _logger;
+        private readonly string _primaryUrl;
 
-        public CurrencyService(ILogger<CurrencyService> logger)
+        public CurrencyService(ILogger<CurrencyService> logger, IOptions<CurrencyRatesOptions> options)
         {
             _httpClient = new HttpClient();
             _logger = logger;
+            _primaryUrl = options.Value.PrimaryUrl;
         }
 
         public async Task<List<CurrencyRate>> GetCurrencyRatesAsync()
@@ -21,11 +24,9 @@ namespace CurrencyRates.Services
 
             try
             {
-                string url = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
-                var response = await _httpClient.GetStringAsync(url);
+                var response = await _httpClient.GetStringAsync(_primaryUrl);
 
                 var document = XDocument.Parse(response);
-                var ns = XNamespace.Get("http://www.ecb.int/vocabulary/2002-08-01/eurofxref");
 
                 var cubeRoot = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "Cube" && e.HasAttributes == false);
                 var dateCube = cubeRoot?.Elements().FirstOrDefault();

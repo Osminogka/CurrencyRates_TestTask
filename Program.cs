@@ -1,3 +1,4 @@
+using CurrencyRates.Models;
 using CurrencyRates.Services;
 using Radzen;
 
@@ -8,6 +9,10 @@ namespace CurrencyRates
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.Configure<CurrencyRatesOptions>(
+                builder.Configuration.GetSection("CurrencyRates"));
+            builder.Services.AddScoped<CurrencyService>();
 
             builder.Services.AddRazorPages();
             builder.Services.AddServerSideBlazor();
